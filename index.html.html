@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>분리배출 탐험대</title>
+  <style>
+    :root { font-family: 'Arial Rounded MT Bold', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; color:#244b36; background:#effbea; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 10% 10%,#d9f8ce 0,transparent 35%),linear-gradient(160deg,#f4ffef,#e7f9e5); }
+    main { max-width:1060px; margin:auto; padding:36px 24px 64px; }
+    .screen { display:none; }
+    .screen.active { display:block; }
+    .screen:not(.active) { display:none; }
+    .welcome { min-height:calc(100vh - 100px); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+    .mascot { font-size:90px; margin-bottom:10px; }
+    h1 { font-size:clamp(36px,5vw,58px); color:#21844b; margin:8px 0 16px; }
+    .intro { font-size:clamp(20px,2.5vw,26px); line-height:1.6; margin:0 0 35px; }
+    button { border:0; border-radius:22px; padding:19px 44px; font-size:clamp(22px,2.5vw,28px); font-weight:800; cursor:pointer; min-height:72px; font-family:inherit; touch-action:manipulation; }
+    button:focus-visible { outline:4px solid #f9ba42; outline-offset:4px; }
+    .primary { color:white; background:#27a75b; box-shadow:0 7px 0 #177c41; }
+    .primary:active { transform:translateY(5px); box-shadow:0 2px 0 #177c41; }
+    .secondary { color:#21844b; background:#fff; border:3px solid #83cf9a; box-shadow:0 5px 0 #b9e4c3; }
+    .secondary:active { transform:translateY(4px); box-shadow:0 1px 0 #b9e4c3; }
+    .finish-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:16px; }
+    .learning-header { text-align:center; margin:15px 0 30px; }
+    .learning-header h1 { font-size:clamp(30px,4.4vw,48px); }
+    .learning-header p { font-size:21px; line-height:1.6; }
+    .cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+    .card { background:white; border:3px solid #c5eacb; border-radius:28px; padding:28px; box-shadow:0 8px 18px #27643a14; }
+    .card:nth-child(2) { border-color:#c4e6f5; }
+    .card:nth-child(3) { border-color:#f6dfb2; }
+    .card:nth-child(4) { border-color:#e5d9ef; }
+    .card-heading { display:flex; align-items:center; gap:14px; margin-bottom:12px; }
+    .emoji { font-size:53px; line-height:1.2; }
+    h2 { margin:0; font-size:clamp(25px,3vw,32px); }
+    .description { font-size:21px; font-weight:700; line-height:1.6; margin:10px 0 18px; }
+    .examples { background:#f2f9f0; padding:16px 18px; border-radius:18px; font-size:19px; line-height:1.65; }
+    .examples strong { color:#25804a; }
+    .actions { text-align:center; margin-top:36px; }
+    .game-panel { max-width:850px; margin:20px auto; text-align:center; }
+    .game-progress { font-size:23px; font-weight:800; color:#287b49; margin:12px 0 22px; }
+    .question-card { background:#fff; border:3px solid #bde8c8; border-radius:30px; padding:28px 20px; box-shadow:0 8px 18px #27643a14; }
+    .question-emoji { font-size:88px; display:block; margin:8px 0; }
+    .question-name { font-size:clamp(27px,4vw,38px); font-weight:800; margin:12px 0; }
+    .question-help { font-size:21px; margin:10px 0 0; }
+    .bins { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:24px; }
+    .bin { background:#fff; color:#24573b; border:3px solid #9bd8ae; padding:20px 12px; min-height:112px; font-size:clamp(20px,2.6vw,27px); }
+    .bin:hover:not(:disabled) { background:#e2f8e7; }
+    .bin:disabled { opacity:.65; cursor:default; }
+    .feedback { min-height:42px; margin:18px 0 0; font-size:23px; font-weight:800; }
+    .next-action { margin:18px 0 8px; }
+    .game-note { font-size:17px; line-height:1.5; color:#52715c; }
+    .hint { color:#5a7865; font-size:16px; margin:16px 0 0; }
+    @media (max-width:680px) { main { padding:24px 16px 48px; } .cards { grid-template-columns:1fr; } .card { padding:22px; } .learning-header p { font-size:19px; } .description { font-size:19px; } .examples { font-size:18px; } }
+    @media (prefers-reduced-motion:no-preference) { .card { animation:rise .35s ease both; } @keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } } }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="welcome" class="screen active welcome" aria-labelledby="welcome-title">
+      <div class="mascot" aria-hidden="true">🌍♻️</div>
+      <h1 id="welcome-title">분리배출 탐험대</h1>
+      <p class="intro">우리 함께 지구를 지키는<br />분리배출 탐험을 떠나 볼까요? 🌱</p>
+      <button class="primary" id="start-learning" type="button">시작하기 🚀</button>
+    </section>
+
+    <section id="learning" class="screen" aria-labelledby="learning-title">
+      <header class="learning-header">
+        <h1 id="learning-title">🌱 분리배출 방법을 알아봐요!</h1>
+        <p>쓰레기마다 알맞은 버리는 방법이 있어요.<br />카드를 보면서 함께 배워 봐요!</p>
+      </header>
+      <div class="cards">
+        <article class="card">
+          <div class="card-heading"><span class="emoji" aria-hidden="true">📄</span><h2>종이류</h2></div>
+          <p class="description">깨끗한 종이를 버려요.</p>
+          <div class="examples"><strong>어떤 것들이 있을까요?</strong><div>신문, 책, 공책, 종이 상자</div></div>
+        </article>
+        <article class="card">
+          <div class="card-heading"><span class="emoji" aria-hidden="true">🧴</span><h2>플라스틱류</h2></div>
+          <p class="description">내용물을 비우고 깨끗하게 버려요.</p>
+          <div class="examples"><strong>어떤 것들이 있을까요?</strong><div>샴푸 통, 요구르트 병, 과자 용기</div></div>
+        </article>
+        <article class="card">
+          <div class="card-heading"><span class="emoji" aria-hidden="true">🥫</span><h2>캔류</h2></div>
+          <p class="description">내용물을 비우고 버려요.</p>
+          <div class="examples"><strong>어떤 것들이 있을까요?</strong><div>음료수 캔, 참치 캔, 통조림 캔</div></div>
+        </article>
+        <article class="card">
+          <div class="card-heading"><span class="emoji" aria-hidden="true">🗑️</span><h2>일반쓰레기</h2></div>
+          <p class="description">재활용하기 어려운 쓰레기를 버려요.</p>
+          <div class="examples"><strong>어떤 것들이 있을까요?</strong><div>쓴 휴지, 칫솔, 깨진 컵</div></div>
+        </article>
+      </div>
+      <div class="actions">
+        <button class="primary" type="button" id="game-start">🎮 게임 시작하기</button>
+
+      </div>
+    </section>
+
+    <section id="game" class="screen" aria-labelledby="game-title">
+      <div class="game-panel">
+        <header class="learning-header">
+          <h1 id="game-title">♻️ 분리배출 게임</h1>
+          <p>물건을 보고 알맞은 분리배출함을 눌러 봐요!</p>
+        </header>
+        <p class="game-progress" id="game-progress" aria-live="polite"></p>
+        <div id="question-area">
+          <div class="question-card">
+            <span class="question-emoji" id="question-emoji" aria-hidden="true"></span>
+            <div class="question-name" id="question-name"></div>
+            <p class="question-help">어디에 버려야 할까요? 🤔</p>
+          </div>
+          <div class="bins" aria-label="분리배출함 선택">
+            <button type="button" class="bin" data-bin="종이류">📄 종이류</button>
+            <button type="button" class="bin" data-bin="플라스틱류">🧴 플라스틱류</button>
+            <button type="button" class="bin" data-bin="캔류">🥫 캔류</button>
+            <button type="button" class="bin" data-bin="일반쓰레기">🗑️ 일반쓰레기</button>
+          </div>
+          <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+          <div class="next-action"><button class="primary" id="next-question" type="button" hidden>다음 문제 ➡️</button></div>
+          <p class="game-note">재활용할 수 있는 용기와 종이는 깨끗하게 준비된 상태예요.</p>
+        </div>
+        <div id="game-finish" hidden>
+          <div class="question-card">
+            <span class="question-emoji" aria-hidden="true">🎉🌍</span>
+            <h2>분리배출 탐험 완료! 🎉</h2>
+            <p class="question-name" id="final-score"></p>
+            <p class="question-help">다섯 문제를 모두 풀었어요! 참 잘했어요!</p>
+          </div>
+          <div class="actions finish-actions">
+            <button type="button" class="primary" id="retry-game">🔄 다시 하기</button>
+            <button type="button" class="secondary" id="go-home">🏠 처음으로</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    document.getElementById('start-learning').addEventListener('click', function () {
+      document.getElementById('welcome').classList.remove('active');
+      document.getElementById('learning').classList.add('active');
+      window.scrollTo(0, 0);
+      document.getElementById('learning-title').setAttribute('tabindex', '-1');
+      document.getElementById('learning-title').focus();
+    });
+    const questions = [
+      { emoji: '📰', name: '신문지', answer: '종이류' },
+      { emoji: '🧴', name: '깨끗한 플라스틱 세제 용기', answer: '플라스틱류' },
+      { emoji: '🥫', name: '음료수 캔', answer: '캔류' },
+      { emoji: '🧻', name: '사용한 휴지', answer: '일반쓰레기' },
+      { emoji: '📦', name: '깨끗한 종이상자', answer: '종이류' }
+    ];
+    let questionIndex = 0;
+    let score = 0;
+    let advancing = false;
+    const binButtons = Array.from(document.querySelectorAll('.bin'));
+
+    function showQuestion() {
+      const question = questions[questionIndex];
+      document.getElementById('game-progress').textContent = `${questionIndex + 1} / ${questions.length} 문제`;
+      document.getElementById('question-emoji').textContent = question.emoji;
+      document.getElementById('question-name').textContent = question.name;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('next-question').hidden = true;
+      binButtons.forEach(button => { button.disabled = false; });
+      advancing = false;
+    }
+
+    function startGame() {
+      questionIndex = 0;
+      score = 0;
+      advancing = false;
+      document.getElementById('welcome').classList.remove('active');
+      document.getElementById('learning').classList.remove('active');
+      document.getElementById('game').classList.add('active');
+      document.getElementById('question-area').hidden = false;
+      document.getElementById('game-finish').hidden = true;
+      showQuestion();
+      window.scrollTo(0, 0);
+    }
+
+    function chooseBin(chosen) {
+      if (advancing) return;
+      advancing = true;
+      binButtons.forEach(button => { button.disabled = true; });
+      const correct = chosen === questions[questionIndex].answer;
+      if (correct) score++;
+      document.getElementById('feedback').textContent = correct
+        ? '정답이에요! 🌟'
+        : `아쉬워요! 정답은 ${questions[questionIndex].answer}예요.`;
+      document.getElementById('next-question').hidden = false;
+    }
+
+    function nextQuestion() {
+      if (!advancing) return;
+      questionIndex++;
+      if (questionIndex < questions.length) {
+        showQuestion();
+      } else {
+        document.getElementById('question-area').hidden = true;
+        document.getElementById('game-finish').hidden = false;
+        document.getElementById('game-progress').textContent = '모든 문제 완료!';
+        document.getElementById('final-score').textContent = `${questions.length}문제 중 ${score}문제를 맞혔어요!`;
+      }
+    }
+
+    function goHome() {
+      questionIndex = 0;
+      score = 0;
+      advancing = false;
+      document.getElementById('game').classList.remove('active');
+      document.getElementById('learning').classList.remove('active');
+      document.getElementById('welcome').classList.add('active');
+      document.getElementById('question-area').hidden = false;
+      document.getElementById('game-finish').hidden = true;
+      window.scrollTo(0, 0);
+    }
+
+    document.getElementById('game-start').addEventListener('click', startGame);
+    document.getElementById('go-home').addEventListener('click', goHome);
+    document.getElementById('retry-game').addEventListener('click', startGame);
+    document.getElementById('next-question').addEventListener('click', nextQuestion);
+    binButtons.forEach(button => button.addEventListener('click', () => chooseBin(button.dataset.bin)));
+  </script>
+</body>
+</html>
